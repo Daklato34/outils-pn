@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Génération Fiche MAD - PN</title>
+    <style>
+        :root {
+            --mad-red: #cc0000;
+            --mad-dark-blue: #002244;
+            --mad-light-blue: #0055aa;
+            --bg-gray: #f4f7f6;
+            --border-color: #d1d5db;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(rgba(0, 34, 68, 0.8), rgba(0, 34, 68, 0.8)), 
+                        url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=2070') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-left: 10px solid var(--mad-red);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px solid var(--mad-red);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+
+        h1 { color: var(--mad-dark-blue); margin: 0; font-size: 1.8rem; letter-spacing: 1px; }
+        h2 { color: var(--mad-red); font-size: 1rem; margin-top: 5px; font-weight: 400; }
+
+        /* Formulaire */
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: var(--mad-light-blue);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        label { display: block; font-weight: 600; font-size: 0.8rem; margin-bottom: 6px; color: #4b5563; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border 0.2s;
+        }
+        input:focus { border-color: var(--mad-light-blue); outline: none; }
+
+        .infractions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .infraction-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            background: #f9fafb;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .infraction-item input { width: auto; margin-right: 10px; }
+
+        /* Bouton Principal */
+        .btn-generate {
+            background: linear-gradient(135deg, var(--mad-red), #990000);
+            color: white;
+            border: none;
+            padding: 18px;
+            width: 100%;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .btn-generate:active { transform: scale(0.98); }
+
+        /* --- STYLE DE LA FICHE GÉNÉRÉE --- */
+        #result-zone {
+            display: none;
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .fiche-finale {
+            background: white;
+            border: 2px solid #000;
+            padding: 40px;
+            color: #000;
+            position: relative;
+        }
+
+        .fiche-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .badge-mad {
+            background: #000;
+            color: #fff;
+            padding: 5px 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .fiche-section { margin-bottom: 20px; }
+        .fiche-title {
+            background: #eee;
+            padding: 5px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            border-left: 8px solid var(--mad-red);
+            margin-bottom: 10px;
+        }
+
+        .fiche-row {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            padding: 8px 0;
+        }
+
+        .fiche-label { width: 200px; font-weight: bold; color: #444; font-size: 0.9rem; }
+        .fiche-value { flex: 1; font-size: 0.95rem; }
+
+        .tag {
+            display: inline-block;
+            background: #e5e7eb;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .btn-copy-final {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .hidden-field {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-left: 3px solid var(--mad-light-blue);
+            background: #f0f7ff;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container, .btn-generate, .btn-copy-final { display: none; }
+            #result-zone { display: block !important; margin: 0; }
+            .fiche-finale { border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📄 FICHE DE MISE À DISPOSITION</h1>
+        <h2>PRÉSENTATION AU PARQUET / DÉFÈREMENT IMMÉDIAT</h2>
+    </header>
+
+    <div class="section">
+        <h3>📍 Références de l'interpelation</h3>
+        <div class="grid">
+            <div>
+                <label>Service Interpelleur</label>
+                <input type="text" id="service" placeholder="ex: Police secours, BAC, CSI, GSP, etc.">
+            </div>
+            <div>
+                <label>Date & Heure Interpellation</label>
+                <div style="display: flex; gap: 4px;">
+                    <input type="date" id="dateInterp">
+                    <input type="time" id="heureInterp">
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:15px;">
+            <label>Lieu précis des faits</label>
+            <input type="text" id="lieuInterp" placeholder="Adresse complète de l'interpellation">
+        </div>
+        <div>
+            <label>Effectifs interpellateurs</label>
+            <input type="text" id="effectifs" placeholder="ex: Gardien Dupont / (RIO 123456)">
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>👤 Mis en Cause</h3>
+        <div class="grid">
+            <div>
+                <label>Nom & Prénom</label>
+                <input type="text" id="nom" placeholder="Identité complète">
+            </div>
+            <div>
+                <label>Né(e) le / à</label>
+                <input type="text" id="naissance" placeholder="JJ/MM/AAAA à Ville">
+            </div>
+            <div>
+                <label>Situation TAJ</label>
+                <select id="taj">
+                    <option value="Inconnu">Inconnu </option>
+                    <option value="Connu">Connu </option>
+                    <option value="Très connu">Multirécidiviste</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+     <div class="section">
+        <h3>⚖️ Infractions Retenues</h3>
+        <div class="infractions-grid">
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Vols aggravés"> Vols aggravés</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Violences sur PDAP"> Violences sur PDAP</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Trafic de stupéfiants"> Trafic de stupéfiants</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Rebellion / Outrage"> Rebellion / Outrage</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Port d'arme catégorie A/B/C/D"> Port d'arme</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Récidive de conduite sans permis"> Récidive de conduite sans permis</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Refus d'obtempérer"> Refus d'obtempérer</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Recel de vol"> Recel de vol</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Vol à main armé"> Vol à main armé</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Enlévement / séquestration"> Enlévement / séquestration</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Délit de fuite"> Délit de fuite</label>
+            <label class="infraction-item"><input type="checkbox" class="infraction" value="Dégradations de biens volontaire"> Dégradations de biens volontaire</label>
+        </div>
+        <div style="margin-top:10px;">
+            <label>Autre(s) infraction(s) (manuel)</label>
+            <input type="text" id="autreInfraction" placeholder="Saisir d'autres qualifications ici...">
+        </div>
+        <div style="margin-top:10px;">
+            <label>Précisions complémentaires / Mode opératoire</label>
+            <textarea id="precision" placeholder="Bref résumé des faits..."></textarea>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🛡️ Mesures de Sécurité</h3>
+        <div class="grid">
+            <div>
+                <label>Palpation (Art. R434-16 CSI)</label>
+                <select id="palpation" onchange="toggleObjets()">
+                    <option value="NON">NON (Non effectuée)</option>
+                    <option value="OUI">OUI (Effectuée)</option>
+                </select>
+                <div id="fieldObjets" class="hidden-field" style="display:none;">
+                    <label>Objets découverts ?</label>
+                    <select id="hasObjets" onchange="toggleObjetsDetail()">
+                        <option value="NON">NON</option>
+                        <option value="OUI">OUI</option>
+                    </select>
+                    <div id="fieldObjetsDetail" class="hidden-field">
+                        <label>Détail de(s) l'objet(s) :</label>
+                        <input type="text" id="objetsPalpation" placeholder="Couteau, Stupéfiant(s), etc.">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label>Menottage (Art. 803 CPP)</label>
+                <select id="menottage" onchange="toggleMotifs()">
+                    <option value="NON">NON</option>
+                    <option value="OUI">OUI</option>
+                </select>
+                <div id="fieldMotifs" class="hidden-field">
+                    <label>Motif(s) :</label>
+                    <div class="infraction-item"><input type="checkbox" id="motifFuite"> Risque de fuite</div>
+                    <div class="infraction-item"><input type="checkbox" id="motifDanger"> Individu dangereux</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<div class="section">
+    <h3>🚑 État de santé & Vigilance</h3>
+    <div class="grid">
+        <div>
+            <label>Individu consulté ?</label>
+            <select id="estBlesse" onchange="toggleExamen()">
+                <option value="NON">NON</option>
+                <option value="OUI">OUI</option>
+            </select>
+
+            <div id="fieldExamenMedical" style="display: none; margin-top: 10px; padding-left: 15px; border-left: 2px solid var(--mad-red);">
+                <label>Examen médical effectué ?</label>
+                <select id="examenEffectue" onchange="toggleCertificat()">
+                    <option value="NON">NON</option>
+                    <option value="OUI">OUI</option>
+                </select>
+
+                <div id="fieldResultatMedical" style="display: none; margin-top: 10px;">
+                    <label>Résultat examen :</label>
+                    <select id="certificatResultat">
+                        <option value="APTE">✅ APTE à une mesure de détention ou de GAV</option>
+                        <option value="INAPTE">❌ INAPTE</option>
+                        <option value="ETAT D'IVRESSE">🍺 ETAT D'IVRESSE</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label>Dangerosité</label>
+            <select id="danger">
+                <option value="Bas">Bas</option>
+                <option value="Moyen">Moyen</option>
+                <option value="Élevé">Élevé</option>
+                <option value="Suicidaire">Suicidaire</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+    <button class="btn-generate" onclick="genererFiche()">GÉNÉRER LA FICHE DE SYNTHÈSE</button>
+
+    <div id="result-zone">
+        <div class="fiche-finale" id="fiche">
+            <div class="fiche-header">
+                <div>
+                    <strong style="font-size: 1.2rem;">POLICE NATIONALE</strong><br>
+                    <span>MINISTÈRE DE L'INTÉRIEUR</span>
+                </div>
+                <div class="badge-mad">FICHE MAD</div>
+            </div>
+
+            <div class="fiche-section">
+                <div class="fiche-title">Cadre de l'interpellation</div>
+                <div class="fiche-row"><div class="fiche-label">Service :</div><div class="fiche-value" id="res-service"></div></div>
+                <div class="fiche-row"><div class="fiche-label">Date/Heure :</div><div class="fiche-value" id="res-moment"></div></div>
+                <div class="fiche-row"><div class="fiche-label">Lieu :</div><div class="fiche-value" id="res-lieu"></div></div>
+            </div>
+
+            <div class="fiche-section">
+                <div class="fiche-title">Individu Interpellé</div>
+                <div class="fiche-row"><div class="fiche-label">Identité :</div><div class="fiche-value" style="font-weight:bold; font-size:1.1rem;" id="res-nom"></div></div>
+                <div class="fiche-row"><div class="fiche-label">Né(e) le/à :</div><div class="fiche-value" id="res-naissance"></div></div>
+                <div class="fiche-row"><div class="fiche-label">Antécédents :</div><div class="fiche-value" id="res-taj"></div></div>
+            </div>
+
+            <div class="fiche-section">
+                <div class="fiche-title">Motifs & Circonstances</div>
+                <div class="fiche-row"><div class="fiche-label">Infractions :</div><div class="fiche-value" id="res-infractions"></div></div>
+                <div class="fiche-row"><div class="fiche-label">Détails :</div><div class="fiche-value" id="res-details" style="font-style: italic;"></div></div>
+            </div>
+
+            <div class="fiche-section">
+                <div class="fiche-title">Observations Sécurité</div>
+                <div class="grid" style="grid-template-columns: 1fr 1fr; border: 1px solid #eee; padding: 10px;">
+                    <div><strong>Entraves :</strong> <span id="res-menottes"></span></div>
+                    <div><strong>Santé :</strong> <span id="res-sante"></span></div>
+                    <div style="margin-top:5px;"><strong>Vigilance :</strong> <span id="res-danger"></span></div>
+                </div>
+            </div>
+
+            <div style="margin-top:30px; font-size:0.8rem; text-align:right; border-top:1px solid #000; padding-top:10px;">
+                Document généré le <span id="current-date"></span> - Signature de l'OPJ / APJ
+            </div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button class="btn-copy-final" onclick="window.print()">🖨️ IMPRIMER LA FICHE</button>
+            <button class="btn-copy-final" style="background:#0055aa;" onclick="copierTexte()">📋 COPIER LE RÉSUMÉ TEXTE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FONCTIONS DE CONTROLE DES MENUS (CASCADE) ---
+    
+    // Cascade Santé
+    function toggleExamen() {
+        const blesse = document.getElementById("estBlesse").value;
+        const champExamen = document.getElementById("fieldExamenMedical");
+        const champResultat = document.getElementById("fieldResultatMedical");
+
+        if (blesse === "OUI") {
+            champExamen.style.display = "block";
+        } else {
+            champExamen.style.display = "none";
+            champResultat.style.display = "none";
+            document.getElementById("examenEffectue").value = "NON";
+        }
+    }
+
+    function toggleCertificat() {
+        const examen = document.getElementById("examenEffectue").value;
+        const champResultat = document.getElementById("fieldResultatMedical");
+
+        if (examen === "OUI") {
+            champResultat.style.display = "block";
+        } else {
+            champResultat.style.display = "none";
+        }
+    }
+
+    // Cascade Palpation
+    function toggleObjets() {
+        const palpation = document.getElementById("palpation").value;
+        const divObjets = document.getElementById("fieldObjets");
+        const divDetail = document.getElementById("fieldObjetsDetail");
+
+        if (palpation === "OUI") {
+            divObjets.style.display = "block";
+        } else {
+            divObjets.style.display = "none";
+            divDetail.style.display = "none";
+            document.getElementById("hasObjets").value = "NON";
+        }
+    }
+
+    function toggleObjetsDetail() {
+        const hasObjets = document.getElementById("hasObjets").value;
+        const divDetail = document.getElementById("fieldObjetsDetail");
+
+        if (hasObjets === "OUI") {
+            divDetail.style.display = "block";
+        } else {
+            divDetail.style.display = "none";
+            document.getElementById("objetsPalpation").value = "";
+        }
+    }
+
+    // Cascade Menottage
+    function toggleMotifs() {
+        const menottage = document.getElementById("menottage").value;
+        const divMotifs = document.getElementById("fieldMotifs");
+
+        if (menottage === "OUI") {
+            divMotifs.style.display = "block";
+        } else {
+            divMotifs.style.display = "none";
+            document.getElementById("motifFuite").checked = false;
+            document.getElementById("motifDanger").checked = false;
+        }
+    }
+
+    // --- FONCTIONS PRINCIPALES ---
+
+    function genererFiche() {
+        // Collecte des données de base
+        const service = document.getElementById('service').value || "N/C";
+        const dateI = document.getElementById('dateInterp').value || "N/C";
+        const heureI = document.getElementById('heureInterp').value || "N/C";
+        const lieu = document.getElementById('lieuInterp').value || "N/C";
+        const nom = document.getElementById('nom').value || "INDIVIDU NON IDENTIFIÉ";
+        const naissance = document.getElementById('naissance').value || "N/C";
+        const taj = document.getElementById('taj').value;
+        
+        let infras = [];
+        document.querySelectorAll('.infraction:checked').forEach(i => infras.push(i.value));
+        
+        const precision = document.getElementById('precision').value || "Aucune précision complémentaire.";
+        const danger = document.getElementById('danger').value;
+
+        // Logique spécifique pour le Menottage
+        const menottageSelect = document.getElementById('menottage').value;
+        let menottageFinal = menottageSelect;
+        if (menottageSelect === "OUI") {
+            let motifsM = [];
+            if (document.getElementById('motifFuite').checked) motifsM.push("Risque de fuite");
+            if (document.getElementById('motifDanger').checked) motifsM.push("Individu dangereux");
+            menottageFinal += motifsM.length > 0 ? ` (${motifsM.join(', ')})` : " (Sans motif précisé)";
+        }
+
+        // Logique spécifique pour la Palpation / Objets
+        const palp = document.getElementById('palpation').value;
+        const hasObj = document.getElementById('hasObjets').value;
+        const detObj = document.getElementById('objetsPalpation').value;
+        let palpSynthese = palp;
+        if (palp === "OUI") {
+            palpSynthese += (hasObj === "OUI" && detObj) ? ` (Découverte : ${detObj})` : " (RAS)";
+        }
+
+        // Logique spécifique pour la Santé
+        const blesse = document.getElementById('estBlesse').value;
+        const examen = document.getElementById('examenEffectue').value;
+        const certificat = document.getElementById('certificatResultat').value;
+        
+        let santeSynthese = "RAS (Compatible)";
+        if (blesse === "OUI") {
+            if (examen === "OUI") {
+                santeSynthese = `Blessé - Examen effectué : ${certificat}`;
+            } else {
+                santeSynthese = "Blessé - En attente examen médical";
+            }
+        }
+
+        // Remplissage de la fiche visuelle
+        document.getElementById('res-service').textContent = service.toUpperCase();
+        document.getElementById('res-moment').textContent = `Le ${dateI} à ${heureI}`;
+        document.getElementById('res-lieu').textContent = lieu.toUpperCase();
+        document.getElementById('res-nom').textContent = nom.toUpperCase();
+        document.getElementById('res-naissance').textContent = naissance;
+        document.getElementById('res-taj').textContent = taj;
+        document.getElementById('res-infractions').innerHTML = infras.map(i => `<span class="tag">${i}</span>`).join('');
+        
+        // On combine les détails des faits et la palpation dans la zone détails
+        document.getElementById('res-details').innerHTML = `<strong>Récit :</strong> ${precision}<br><strong>Palpation :</strong> ${palpSynthese}`;
+        
+        document.getElementById('res-menottes').textContent = menottageFinal;
+        document.getElementById('res-sante').textContent = santeSynthese;
+        document.getElementById('res-danger').textContent = danger.toUpperCase();
+        document.getElementById('current-date').textContent = new Date().toLocaleString();
+
+        // Affichage
+        document.getElementById('result-zone').style.display = 'block';
+        window.scrollTo({ top: document.getElementById('result-zone').offsetTop, behavior: 'smooth' });
+    }
+
+    function copierTexte() {
+        const nom = document.getElementById('nom').value;
+        const service = document.getElementById('service').value;
+        let infras = [];
+        document.querySelectorAll('.infraction:checked').forEach(i => infras.push(i.value));
+        
+        const blesse = document.getElementById('estBlesse').value;
+        const certificat = document.getElementById('certificatResultat').value;
+        const santeCopie = blesse === "OUI" ? `Blessé (${certificat})` : "RAS";
+        
+        const texte = `--- FICHE MAD ---\nSERVICE: ${service}\nMC: ${nom}\nINFRACTIONS: ${infras.join(', ')}\nSANTÉ: ${santeCopie}`;
+        
+        navigator.clipboard.writeText(texte).then(() => {
+            alert("Résumé texte copié dans le presse-papier !");
+        });
+    }
+</script>
+
+</body>
+</html>

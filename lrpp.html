@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Génération PVI PN</title>
+    <style>
+        :root {
+            --police-blue: #003366;
+            --police-light-blue: #0078FF;
+            --police-accent: #cc0000;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e3eaf4;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(rgba(0, 51, 102, 0.75), rgba(0, 51, 102, 0.75)), 
+                        url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=2069') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.98);
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-top: 10px solid var(--police-blue);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+        }
+
+        h1 {
+            color: var(--police-blue);
+            font-size: 1.8rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            color: var(--police-light-blue);
+            font-size: 1.1rem;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        h3 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            color: var(--police-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0;
+        }
+
+        .section {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-left: 6px solid var(--police-light-blue);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #333;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--police-light-blue);
+            box-shadow: 0 0 5px rgba(0, 120, 255, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            background: #f0f4f8;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            color: var(--police-blue);
+        }
+
+        .checkbox-container input {
+            width: auto;
+        }
+
+        button {
+            background-color: var(--police-blue);
+            color: #fff;
+            border: none;
+            padding: 15px 25px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #002244;
+            transform: translateY(-1px);
+        }
+
+        .result-container {
+            margin-top: 30px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border: 2px dashed var(--police-light-blue);
+            border-radius: 8px;
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            margin-top: 15px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        #error-message {
+            background-color: #d32f2f;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: white;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .grid-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🚨 Procès-Verbal d'Interpellation 🚨</h1>
+        <h2>LRPPN SIMPLIFIÉE - GESTION DES PROCÉDURES DE LA POLICE NATIONALE</h2>
+    </header>
+
+    <div id="error-message">⚠️ Attention : Veuillez remplir les champs obligatoires (*)</div>
+
+    <!-- Informations véhicule -->
+    <div class="section">
+        <h3>🚔 Équipage et Patrouille</h3>
+        <div class="grid-inputs">
+            <div>
+                <label>Type de véhicule *</label>
+                <input type="text" id="typeVehicule" placeholder="ex: Peugeot 5008, Renault Scenic">
+            </div>
+            <div>
+                <label>Sérigraphie</label>
+                <select id="serigraphie">
+                    <option value="sérigraphier 'Police Nationale'">Police Nationale</option>
+                    <option value="Banalisé">Banalisé</option>
+                </select>
+            </div>
+            <div>
+                <label>Indicatif radio</label>
+                <input type="text" id="indicatifRadio" placeholder="ex: PS 130 Alpha, BAC 130 Alpha, 51 Alpha 11...">
+            </div>
+            <div>
+                <label>Zone de vacation *</label>
+                <input type="text" id="zoneVacation" placeholder="ex: Marseille 8ème, ...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Résumé du contrôle -->
+    <div class="section">
+        <h3>📋 Circonstances du contrôle</h3>
+        <label>Motif de l'intervention / Résumé initial</label>
+        <textarea id="resume" placeholder="Décrivez ce qui a motivé le contrôle (comportement suspect, infraction au code de la route, appel radio CIC...)"></textarea>
+    </div>
+
+    <!-- Informations de l'individu -->
+    <div class="section">
+        <h3>👤 Identité de l'individu</h3>
+        <div class="grid-inputs">
+            <div>
+                <label>Nom & Prénom *</label>
+                <input type="text" id="nomPrenom1" placeholder="Identité complète">
+            </div>
+            <div>
+                <label>Date de naissance *</label>
+                <input type="text" id="dateNaissance1" placeholder="JJ/MM/AAAA">
+            </div>
+            <div>
+                <label>Heure du contrôle *</label>
+                <input type="time" id="heureControleIdentite">
+            </div>
+            <div>
+                <label>Résultat FPR</label>
+                <select id="resultatFPR">
+                    <option value="Négatif">Négatif (Inconnu)</option>
+                    <option value="Positif / Actif">Fiche de recherche active (FPR Positif)</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top:15px">
+            <label>Heure de la palpation</label>
+            <input type="time" id="heurePalpation" style="width: auto; display: inline-block;">
+            <label style="margin-top:10px">Objets découverts lors de la palpation</label>
+            <textarea id="resultatPalpation" placeholder="Armes, stupéfiants, objets dangereux ou néant..."></textarea>
+        </div>
+    </div>
+
+    <!-- Vérification du véhicule -->
+    <div class="section">
+        <label class="checkbox-container">
+            <input type="checkbox" id="checkVehicule" onchange="toggleVehiculeSection()">
+            <span>➕ Ajouter les vérifications d'un véhicule tiers</span>
+        </label>
+        
+        <div id="vehiculeDetails" class="hidden" style="margin-top:15px">
+            <div class="grid-inputs">
+                <div>
+                    <label>Immatriculation</label>
+                    <input type="text" id="immat" placeholder="AB-123-CD">
+                </div>
+                <div>
+                    <label>Propriétaire (SIV)</label>
+                    <input type="text" id="nomProprio" placeholder="Nom du titulaire de la carte grise">
+                </div>
+                <div>
+                    <label>Heure vérification SIV</label>
+                    <input type="time" id="heureVehicule">
+                </div>
+                <div>
+                    <label>Statut Permis de la personne contrôlé(FNPC)</label>
+                    <select id="resultatFNPC">
+                        <option value="Correct / Permis valide">Correct / Permis valide</option>
+                        <option value="En Défaut">En Défaut (Annulé/Suspendu/Inexistant)</option>
+                    </select>
+                </div>
+            </div>
+            <label style="margin-top:10px">Vérification FOVeS (Vol/Opposition)</label>
+            <textarea id="resultatFOVeS" placeholder="Véhicule signalé volé, détourné ou NEANT..."></textarea>
+        </div>
+    </div>
+
+    <!-- Informations OPJ -->
+    <div class="section">
+        <h3>👮 Mesures de Garde à Vue</h3>
+        <div class="grid-inputs">
+            <div>
+                <label>Heure du menottage</label>
+                <input type="time" id="heureMenottage">
+            </div>
+            <div>
+                <label>Nom de l'OPJ avisé</label>
+                <input type="text" id="nomOPJ" placeholder="Officier de permanence en charge de la GAV">
+            </div>
+            <div>
+                <label>Heure du début de la Garde à vue</label>
+                <input type="time" id="heureGAV">
+            </div>
+            <div>
+                <label>Heure de fin de la Garde à vue</label>
+                <input type="time" id="heureSortieGAV">
+            </div>
+        </div>
+        <div style="margin-top:15px">
+            <label>Résultat de la fouille intégrale</label>
+            <textarea id="resultatFouille" placeholder="Objets découverts lors de la fouille au commissariat..."></textarea>
+            <label>Droits notifiés / demandés</label>
+            <textarea id="droitsDemander" placeholder="Avocat, médecin, interprète, personne prévenue (Art. 63-1)..."></textarea>
+        </div>
+    </div>
+
+    <button onclick="genererPVI()">GÉNÉRER LE TEXTE FINAL</button>
+
+    <div class="result-container" id="containerResultat" style="display:none">
+        <h3>📄 Résultat du PVI</h3>
+        <div id="resultat" class="result"></div>
+        <button onclick="copierTexte()" class="copy-btn">Copier dans le presse-papier</button>
+    </div>
+</div>
+
+<footer>
+    PN - LRPPN SIMPLIFIÉE - Usage Interne à la Police Nationale Uniquement
+</footer>
+
+<script>
+    function toggleVehiculeSection() {
+        const details = document.getElementById("vehiculeDetails");
+        details.classList.toggle("hidden");
+    }
+
+    function copierTexte() {
+        const text = document.getElementById("resultat").textContent;
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert("Rapport copié dans le presse-papier !");
+        } catch (err) {
+            alert("Erreur lors de la copie.");
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function genererPVI() {
+        const errorMsg = document.getElementById("error-message");
+        errorMsg.style.display = 'none';
+
+        // Validation des champs obligatoires
+        const obligatoires = ["typeVehicule", "zoneVacation", "nomPrenom1", "dateNaissance1", "heureControleIdentite"];
+        let valide = true;
+        obligatoires.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el.value) {
+                valide = false;
+                el.style.borderColor = "#d32f2f";
+            } else {
+                el.style.borderColor = "#ccc";
+            }
+        });
+
+        if (!valide) {
+            errorMsg.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        const h = {
+            identite: document.getElementById("heureControleIdentite").value,
+            palpation: document.getElementById("heurePalpation").value || "[HEURE]",
+            vehicule: document.getElementById("heureVehicule").value || "[HEURE]",
+            menottage: document.getElementById("heureMenottage").value || "[HEURE]",
+            gav: document.getElementById("heureGAV").value || "[HEURE]",
+            sortie: document.getElementById("heureSortieGAV").value || "[HEURE]"
+        };
+
+        const v = {
+            type: document.getElementById("typeVehicule").value,
+            serigraphie: document.getElementById("serigraphie").value,
+            indicatif: document.getElementById("indicatifRadio").value || "NON RENSEIGNÉ",
+            zone: document.getElementById("zoneVacation").value,
+            resume: document.getElementById("resume").value || "En surveillance générale sur le secteur.",
+            nom: document.getElementById("nomPrenom1").value,
+            dn: document.getElementById("dateNaissance1").value,
+            fpr: document.getElementById("resultatFPR").value,
+            palpation: document.getElementById("resultatPalpation").value || "NÉANT",
+            opj: document.getElementById("nomOPJ").value || "[NOM OPJ]",
+            fouille: document.getElementById("resultatFouille").value || "NÉANT",
+            droits: document.getElementById("droitsDemander").value || "NÉANT"
+        };
+
+        let pvi = `MINISTÈRE DE L'INTÉRIEUR\nPOLICE NATIONALE\nPROCÈS-VERBAL D'INTERPELLATION\n`;
+        pvi += `====================================\n\n`;
+        pvi += `Alors que nous nous trouvons en vacation à bord d'un véhicule de type ${v.type} ${v.serigraphie}, indicatif radio ${v.indicatif} sur le secteur de ${v.zone}.\n\n`;
+        
+        pvi += `CIRCONSTANCES ET MOTIF :\n${v.resume}\n\n`;
+
+        pvi += `-- ${h.identite}\nProcédons au contrôle d'identité de l'individu conformément aux articles 78-2 du Code de Procédure Pénale. L'individu nous présente une pièce d'identité supportant sa photographie ou nous informe verbalement se nommer :\n`;
+        pvi += `NOM/PRÉNOM : ${v.nom}\n`;
+        pvi += `NÉ LE : ${v.dn}\n\n`;
+        
+        pvi += `Vérification au Fichier des Personnes Recherchées (FPR) : ${v.fpr}\n\n`;
+
+        pvi += `-- ${h.palpation}\nProcédons à une palpation de sécurité conformément à l'Article R434-16 du Code de la Sécurité Intérieur.\n`;
+        pvi += `Résultat de la palpation : ${v.palpation}\n\n`;
+
+        if (document.getElementById("checkVehicule").checked) {
+            pvi += `-- ${h.vehicule}\nProcédons au contrôle du véhicule immatriculé ${document.getElementById("immat").value} conformément aux articles L233-1 et L233-3 du Code de la Route et L211-14 et suivants du code des assurances.\n`;
+            pvi += `Titulaire de la carte grise : ${document.getElementById("nomProprio").value}\n`;
+            pvi += `Statut du Permis de conduire de la personne contrôlé (FNPC) : ${document.getElementById("resultatFNPC").value}\n`;
+            pvi += `Statut Véhicule contrôlé (FOVeS) : ${document.getElementById("resultatFOVeS").value}\n\n`;
+        }
+
+        pvi += `-- ${h.menottage}\nVu les articles 53 à 73 du Code de Procédure Pénale, procédons à l'interpellation de l'individu nommé ci-dessus. Ce dernier est soumis au port des entraves (menottes) de manière coercitive pour prévenir toute fuite ou violence envers autrui ou lui-même, conformément à l'Article 803 du Code de Procédure Pénale.\n\n`;
+
+        pvi += `-- ${h.gav}\nL'Officier de Police Judiciaire ${v.opj} est avisé de la mesure d'interpellation et nous demande de lui présenter l'individu dans les plus brefs délais. Faisons retour au service avec l'individu interpellé menotté à bord de notre véhicule de Police. De retour au service et après présentation de l'individu interpellé à l'Officier de Police Judiciaire ${v.opj}, il est procédé au placement en Garde à Vue de l'intéressé. Lecture et notification des droits effectuées (Art. 63, 63-1, 63-2, 63-3 du Code de Procédure Pénale).\n`;
+        pvi += `Résultat de la fouille intégrale de sécurité effectué par l'Officier de Police Judiciaire ${v.opj} : ${v.fouille}\n`;
+        pvi += `Droits demandés : ${v.droits}\n\n`;
+
+        pvi += `-- ${h.sortie}\nMise en cellule de l'individu. Fin de la mesure de garde à vue fixée à ${h.sortie} sous réserve des instructions ultérieures du Parquet pour une éventulle prolongation de garde à vue ou une mise à disposition pour une comparution immédiate.`;
+
+        document.getElementById("resultat").textContent = pvi;
+        document.getElementById("containerResultat").style.display = "block";
+        document.getElementById("containerResultat").scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
